@@ -3,12 +3,11 @@ import os
 import json
 import copy
 import wave
+import httpx
 import socket
-import requests
 import subprocess
 import numpy as np
 import opuslib_next
-import gc
 from io import BytesIO
 from core.utils import p3
 from pydub import AudioSegment
@@ -96,7 +95,7 @@ def is_private_ip(ip_addr):
         return False  # IP address format error or insufficient segments
 
 
-def get_ip_info(ip_addr, logger):
+async def get_ip_info(ip_addr, logger):
     try:
         # 导入全局缓存管理器
         from core.utils.cache.manager import cache_manager, CacheType
@@ -110,8 +109,12 @@ def get_ip_info(ip_addr, logger):
         if is_private_ip(ip_addr):
             ip_addr = ""
         url = f"https://whois.pconline.com.cn/ipJson.jsp?json=true&ip={ip_addr}"
-        resp = requests.get(url).json()
-        ip_info = {"city": resp.get("city")}
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(url)
+            # pconline返回的是GBK编码，需要手动解码
+            content = resp.content.decode('gbk')
+            data = json.loads(content)
+            ip_info = {"city": data.get("city")}
 
         # 存入缓存
         cache_manager.set(CacheType.IP_INFO, ip_addr, ip_info)

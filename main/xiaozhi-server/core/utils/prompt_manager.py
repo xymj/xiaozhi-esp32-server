@@ -131,7 +131,7 @@ class PromptManager:
 
         return today_date, today_weekday, lunar_date
 
-    def _get_location_info(self, client_ip: str) -> str:
+    async def _get_location_info(self, client_ip: str) -> str:
         """获取位置信息"""
         try:
             # 先从缓存获取
@@ -142,7 +142,7 @@ class PromptManager:
             # 缓存未命中，调用API获取
             from core.utils.util import get_ip_info
 
-            ip_info = get_ip_info(client_ip, self.logger)
+            ip_info = await get_ip_info(client_ip, self.logger)  # await异步调用
             city = ip_info.get("city", "未知位置")
             location = f"{city}"
 
@@ -153,7 +153,7 @@ class PromptManager:
             self.logger.bind(tag=TAG).error(f"获取位置信息失败: {e}")
             return "未知位置"
 
-    def _get_weather_info(self, conn, location: str) -> str:
+    async def _get_weather_info(self, conn, location: str) -> str:
         """获取天气信息"""
         try:
             # 先从缓存获取
@@ -166,7 +166,7 @@ class PromptManager:
             from plugins_func.register import ActionResponse
 
             # 调用get_weather函数
-            result = get_weather(conn, location=location, lang="zh_CN")
+            result = await get_weather(conn, location=location, lang="zh_CN")
             if isinstance(result, ActionResponse):
                 weather_report = result.result
                 self.cache_manager.set(self.CacheType.WEATHER, location, weather_report)
@@ -177,13 +177,13 @@ class PromptManager:
             self.logger.bind(tag=TAG).error(f"获取天气信息失败: {e}")
             return "天气信息获取失败"
 
-    def update_context_info(self, conn, client_ip: str):
+    async def update_context_info(self, conn, client_ip: str):
         """同步更新上下文信息"""
         try:
             # 获取位置信息（使用全局缓存）
-            local_address = self._get_location_info(client_ip)
+            local_address = await self._get_location_info(client_ip)
             # 获取天气信息（使用全局缓存）
-            self._get_weather_info(conn, local_address)
+            await self._get_weather_info(conn, local_address)
             self.logger.bind(tag=TAG).debug(f"上下文信息更新完成")
 
         except Exception as e:

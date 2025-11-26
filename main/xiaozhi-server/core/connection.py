@@ -201,8 +201,7 @@ class ConnectionHandler:
             self.welcome_msg["session_id"] = self.session_id
 
             # 获取差异化配置
-            self._initialize_private_config()
-            # 异步初始化
+            await self.loop.run_in_executor(self.executor, self._initialize_private_config)
             self.executor.submit(self._initialize_components)
 
             try:
@@ -454,14 +453,18 @@ class ConnectionHandler:
             """初始化上报线程"""
             self._init_report_threads()
             """更新系统提示词"""
-            self._init_prompt_enhancement()
+            # 异步执行提示词增强
+            asyncio.run_coroutine_threadsafe(
+                self._init_prompt_enhancement(),
+                self.loop
+            )
 
         except Exception as e:
             self.logger.bind(tag=TAG).error(f"实例化组件失败: {e}")
 
-    def _init_prompt_enhancement(self):
+    async def _init_prompt_enhancement(self):
         # 更新上下文信息
-        self.prompt_manager.update_context_info(self, self.client_ip)
+        await self.prompt_manager.update_context_info(self, self.client_ip)
         enhanced_prompt = self.prompt_manager.build_enhanced_prompt(
             self.config["prompt"], self.device_id, self.client_ip
         )

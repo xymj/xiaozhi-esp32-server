@@ -3,7 +3,6 @@
 import json
 from typing import Dict, List, Any, Optional
 from config.logger import setup_logging
-from plugins_func.loadplugins import auto_import_modules
 
 from .base import ToolType
 from plugins_func.register import Action, ActionResponse
@@ -56,9 +55,6 @@ class UnifiedToolHandler:
     async def _initialize(self):
         """异步初始化"""
         try:
-            # 自动导入插件模块
-            auto_import_modules("plugins_func.functions")
-
             # 初始化服务端MCP
             await self.server_mcp_executor.initialize()
 
