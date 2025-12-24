@@ -1,11 +1,18 @@
 package xiaozhi.common.config;
 
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.Paths;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.springdoc.core.customizers.GlobalOpenApiCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import xiaozhi.common.constant.Constant;
 
 /**
  * Swagger配置
@@ -56,6 +63,14 @@ public class SwaggerConfig {
     }
 
     @Bean
+    public GroupedOpenApi voiceClone() {
+        return GroupedOpenApi.builder()
+            .group("voiceClone")
+            .pathsToMatch("/voiceClone/**")
+            .build();
+    }
+
+    @Bean
     public GroupedOpenApi sysApi() {
         return GroupedOpenApi.builder()
                 .group("admin")
@@ -86,5 +101,40 @@ public class SwaggerConfig {
                 .description("xiaozhi-esp32-manager-api文档")
                 .version("3.0")
                 .termsOfService("https://127.0.0.1"));
+
+            // 👇添加全局安全方案
+//            .addSecurityItem(new SecurityRequirement().addList(Constant.AUTHORIZATION))
+//            .components(new Components()
+//                .addSecuritySchemes(Constant.AUTHORIZATION,
+//                    new SecurityScheme()
+//                        .name(Constant.AUTHORIZATION)
+//                        .type(SecurityScheme.Type.APIKEY)  // 使用 API Key 模式（Header）
+//                        .in(SecurityScheme.In.HEADER)      // 放在请求头
+//                        .description("填写格式：Bearer <your-access-token>")
+//                ));
     }
+
+//    /**
+//     * 全局安全定制器：为所有接口添加 security 声明
+//     */
+//    @Bean
+//    public GlobalOpenApiCustomizer globalOpenApiCustomizer() { // ✅ 返回类型是 GlobalOpenApiCustomizer
+//        return openApi -> {
+//            Paths paths = openApi.getPaths();
+//            if (paths != null) {
+//                paths.forEach((path, pathItem) -> {
+//                    if (pathItem.getGet() != null) applySecurity(pathItem.getGet());
+//                    if (pathItem.getPost() != null) applySecurity(pathItem.getPost());
+//                    if (pathItem.getPut() != null) applySecurity(pathItem.getPut());
+//                    if (pathItem.getDelete() != null) applySecurity(pathItem.getDelete());
+//                    if (pathItem.getPatch() != null) applySecurity(pathItem.getPatch());
+//                });
+//            }
+//        };
+//    }
+//
+//    private void applySecurity(Operation operation) {
+//        operation.addSecurityItem(new SecurityRequirement()
+//            .addList(Constant.AUTHORIZATION));
+//    }
 }

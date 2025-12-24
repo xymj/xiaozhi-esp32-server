@@ -19,6 +19,8 @@ import java.security.spec.ECGenParameterSpec;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * SM2加密工具类（采用十六进制格式，与chancheng-archive-service项目保持一致）
@@ -66,6 +68,17 @@ public class SM2Utils {
         } catch (Exception e) {
             throw new RuntimeException("SM2加密失败", e);
         }
+    }
+
+    public static void main(String[] args) {
+        String publicKey = "04abf93c02aed53a2cb81d4b9bc610758d55c53df61bf904b9ce79a2a6e9d063779c5293d89991a1ea5039a98c3653f33c3b143295359eadff0ed957b0ea6d3f0a";
+        String password = "Admin@666!com";
+        String weakPasswordRegex = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).+$";
+        Pattern pattern = Pattern.compile(weakPasswordRegex);
+        Matcher matcher = pattern.matcher(password);
+        System.out.println(matcher.matches());
+        String encrypt = encrypt(publicKey, String.format("%s%s", "femse", password));
+        System.out.println(encrypt);
     }
 
     /**
